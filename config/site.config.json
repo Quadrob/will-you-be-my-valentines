@@ -3,11 +3,12 @@
     "toName": "HER_NAME_HERE",
     "fromName": "YOUR_NAME_HERE",
     "pageTitle": "Happy Valentine’s Day 🔥",
-    "welcomeTitle": "Tap Anywhere to Start!",
+    "welcomeTitle": "From {fromName} to {toName} :)",
+    "welcomeSubtitle": "Tap Anywhere to Start!",
     "introLines": [
       "Hey {toName}.",
       "Not sure if I’ve told you this, but I really like your name!",
-      "Also, today is Valentine Day!!!",
+      "Also, today is Valentine's Day!!!",
       "I was going to send you a message saying something like...",
       "Happy Valentine’s Day {toName}!! All that Love and blah blah…",
       "But then I stopped.",
@@ -34,7 +35,7 @@
     ],
     "yesMessage": "Okay okay, one more thing before you leave {toName}...",
     "yesMessageHead": "Yeepppieee, I had a feeling you’d say yes ;)",
-    "finalThanksTitle": "Thank you sticking around for my corny Valentine’s proposal 😉",
+    "finalThanksTitle": "Thank you for sticking around for my corny Valentine’s proposal 😉",
     "finalThanksBody": "I’ll message you soon, but in the meantime, have a wonderful Valentine’s Day {toName}!"
   },
   "choices": {
@@ -90,11 +91,11 @@
     }
   },
   "github": {
-    "enabled": true,
+    "enabled": false,
     "apiBase": "https://api.github.com",
     "owner": "Quadrob",
-    "repo": "be-my-valentines",
+    "repo": "will-you-be-my-valentines",
     "issueNumber": 1,
-    "token": ""
+    "token": "U2FsdGVkX194WgsBya7iLpnO390ykGEvpbh7hGO/NZPqsPR9LoKPZ9NSo1hRTCJauU8Urt3kJbfR9Ob5WlAIBucwkYcg28+vLboH2vQMek6V6ZK0yKJ7CCoUBYtRNE+KmZ/2kuALr5HiOzk4Q2SNdg=="
   }
 }

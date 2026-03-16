@@ -24,6 +24,12 @@ const state = {
   }
 };
 
+/**
+ * Set a meme GIF on an <img> element, avoiding reloads if already set.
+ *
+ * @param {HTMLImageElement} imgEl - The target image element.
+ * @param {string} relativePath - The relative path to the GIF.
+ */
 function setMemeGif(imgEl, relativePath) {
   if (!imgEl || !relativePath) return;
   const absolute = new URL(relativePath, window.location.href).href;
@@ -64,6 +70,14 @@ function formatTemplate(str, vars) {
   });
 }
 
+/**
+ * Switch the visible screen by toggling screen classes.
+ *
+ * Updates `aria-hidden` for accessibility and toggles the
+ * `screen--active` class on the target screen.
+ *
+ * @param {string} activeId - The id of the screen to show.
+ */
 function setScreen(activeId) {
   const screens = document.querySelectorAll('.screen');
   for (const screen of screens) {
@@ -73,6 +87,12 @@ function setScreen(activeId) {
   }
 }
 
+/**
+ * Load configuration from `config/site.config.json`.
+ *
+ * This populates the global `siteConfig` used throughout the app and
+ * applies a configured page title if present.
+ */
 async function loadConfig() {
   const res = await fetch('config/site.config.json', { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to load config');
@@ -82,6 +102,12 @@ async function loadConfig() {
   document.title = siteConfig.personal?.pageTitle || document.title;
 }
 
+/**
+ * Initialize and animate the starfield background.
+ *
+ * Builds a field of stars based on the viewport size, then animates their
+ * brightness in a subtle twinkling loop.
+ */
 function initStarfield() {
   const canvas = $('starfield');
   const ctx = canvas.getContext('2d');
@@ -136,6 +162,12 @@ function initStarfield() {
   requestAnimationFrame(draw);
 }
 
+/**
+ * Initialize audio assets and mute toggle behavior.
+ *
+ * Loads audio elements from config, sets up mute state, and wires the
+ * mute toggle button to control playback.
+ */
 function initAudio() {
   const muteToggle = $('mute-toggle');
   const cfg = siteConfig.media?.audio;
@@ -170,6 +202,11 @@ function initAudio() {
   });
 }
 
+/**
+ * Play the background music if audio is enabled and not muted.
+ *
+ * If the BGM is already playing, this is a no-op.
+ */
 function playBgm() {
   if (!state.audio.enabled) return;
   if (state.audio.muted) return;
@@ -185,6 +222,11 @@ function playBgm() {
   }
 }
 
+/**
+ * Play a sound cue (bgm/yes/no) and stop any currently playing audio.
+ *
+ * @param {'bgm'|'yes'|'no'} which - The audio cue to play.
+ */
 function playCue(which) {
   if (!state.audio.enabled) return;
   for (const key of ['bgm', 'yes', 'no']) {
@@ -206,15 +248,23 @@ function playCue(which) {
   }
 }
 
+/**
+ * Initialize the welcome screen UI and start interaction.
+ *
+ * Sets up the personalized welcome message and listens for the first user
+ * interaction to begin the intro sequence.
+ */
 function initWelcomeScreen() {
   const toName = siteConfig.personal?.toName;
   const fromName = siteConfig.personal?.fromName;
   const vars = { toName, fromName };
 
   const titleEl = $('welcome-title');
+  const subtitleEl = $('welcome-subtitle');
   const gifEl = $('welcome-gif');
 
   titleEl.textContent = formatTemplate(siteConfig.personal?.welcomeTitle, vars);
+  subtitleEl.textContent = formatTemplate(siteConfig.personal?.welcomeSubtitle, vars);
   setMemeGif(gifEl, siteConfig.media?.memeWelcomeGif);
 
   let started = false;
@@ -229,6 +279,12 @@ function initWelcomeScreen() {
   document.addEventListener('pointerdown', start, { once: true, passive: true });
 }
 
+/**
+ * Start the intro sequence.
+ *
+ * Displays a sequence of intro lines (with fade) and allows the user to
+ * tap to advance faster. Once complete, it reveals the button to proceed.
+ */
 function startIntro() {
   const introLine = $('intro-line');
   const introSub = $('intro-sub');
@@ -275,13 +331,13 @@ function startIntro() {
 
   introLine.style.transition = 'opacity 620ms ease';
   introLine.textContent = lines[0];
-  introSub.textContent = '(Tap to continue)';
+  introSub.textContent = '';
 
   // Don’t repeat the first line on the first tick
   state.introIndex = Math.min(1, lines.length);
 
   // Automatic sequence (a little slower)
-  const INTRO_STEP_MS = 3500;
+  const INTRO_STEP_MS = 4000;
   let timer = setInterval(() => {
     advance();
     if (state.introDone) {
@@ -314,6 +370,12 @@ function startIntro() {
   });
 }
 
+/**
+ * Initialize the question screen UI and behavior.
+ *
+ * Sets up the yes/no prompt, handles evasive "No" button behavior, and
+ * transitions to the choice flow when the user accepts.
+ */
 function initQuestionScreen() {
   const vars = {
     toName: siteConfig.personal?.toName,
@@ -454,6 +516,12 @@ function initQuestionScreen() {
   });
 }
 
+/**
+ * Starts the step-by-step choices flow (food, flowers, sweets, date).
+ *
+ * Renders each step to the screen, validates selections, and advances the user
+ * through the flow until the review/submit screen.
+ */
 function startChoicesFlow() {
   let stepIndex = 0;
 
@@ -636,6 +704,12 @@ function startChoicesFlow() {
   render();
 }
 
+/**
+ * Render the summary view showing the selected choices.
+ *
+ * This updates the summary UI with the current food/flowers/sweets/date
+ * selections and clears any send/countdown status messages.
+ */
 function renderSummary() {
   const summary = $('summary');
   summary.innerHTML = '';
@@ -677,6 +751,14 @@ function renderSummary() {
   if (countdown) countdown.textContent = '';
 }
 
+/**
+ * Initializes the auto-review + submit flow for the choices screen.
+ *
+ * Handles rendering of the countdown UI, submitting the selected choices
+ * (as a GitHub issue comment when enabled), and showing the final screen.
+ *
+ * @returns {{ startCountdownAndMaybeSubmit: () => void }} API for starting the countdown.
+ */
 function initAutoReviewAndSubmit() {
   const status = $('send-status');
   const countdownEl = $('countdown');
@@ -688,6 +770,15 @@ function initAutoReviewAndSubmit() {
     status.textContent = msg;
   }
 
+  /**
+   * Build the comment body text to submit as a GitHub issue comment.
+   *
+   * This includes the selected choices (food, flowers, sweets, date),
+   * as well as metadata like the page URL, user agent, and whether the
+   * evasive "No" behavior was triggered.
+   *
+   * @returns {string} Formatted comment body text.
+   */
   function buildCommentBody() {
     const personal = siteConfig.personal || {};
 
@@ -715,7 +806,7 @@ function initAutoReviewAndSubmit() {
       `To: ${personal.toName || '—'}`,
       `From: ${personal.fromName || '—'}`,
       '',
-      `No attempts: ${state.noEvasiveEnabled ? 'Max' : Number(state.noClicks)}`,
+      `No attempts: ${state.noEvasiveEnabled ? 'Max' : Number(state.noClicks || 0)}`,
       `No evasive enabled: ${state.noEvasiveEnabled ? 'Yes' : 'No'}`,
       '',
       `Food: ${foodValue || '—'}`,
@@ -723,21 +814,39 @@ function initAutoReviewAndSubmit() {
       `Sweet: ${sweetValue || '—'}`,
       `Date: ${state.choices.date || '—'}`,
       '',
-      `Page: ${pageUrl}`,
-      `User-Agent: ${navigator.userAgent}`
+      `Page: ${pageUrl || '—'}`,
+      `User-Agent: ${navigator.userAgent || '—'}`
     ].join('\n');
   }
 
+  /**
+   * Submit the current selections to GitHub as an issue comment (if enabled).
+   *
+   * Uses AES decryption of an encrypted token stored in the config, then
+   * posts the generated comment body to the configured repository/issue.
+   *
+   * @returns {Promise<{ok: true} | {skipped: true, reason: string}>} Result object.
+   */
   async function submitToGitHubIfEnabled() {
+    var key = 'Dummy Key for Testing';
     const cfg = siteConfig.github;
     if (!cfg?.enabled) return { skipped: true, reason: 'disabled' };
 
     const owner = cfg.owner;
     const repo = cfg.repo;
     const issueNumber = cfg.issueNumber;
-    const token = cfg.token;
 
-    // No prompts in the main flow.
+    /*
+    To encrypt a token for testing, you can use the following code snippet in the browser console. 
+    Make sure to replace 'YourTokenHere' with the actual token you want to encrypt, and use the same key as in the code above.
+
+    const plainTextToken = '';
+    const ciphertext = CryptoJS.AES.encrypt(plainTextToken, key).toString();
+    console.log('Encrypted:', ciphertext);
+    */
+    const bytes = CryptoJS.AES.decrypt(cfg.token, key);
+    const token = bytes.toString(CryptoJS.enc.Utf8);
+
     if (!owner || !repo || !issueNumber || !token) {
       return { skipped: true, reason: 'not_configured' };
     }
@@ -819,6 +928,12 @@ function initAutoReviewAndSubmit() {
   };
 }
 
+/**
+ * Bootstraps the app.
+ *
+ * Loads the config, initializes UI/animations/audio, and wires up the
+ * question/choice flows. It also sets up the auto-submit review flow.
+ */
 async function boot() {
   await loadConfig();
 
